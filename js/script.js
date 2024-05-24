@@ -2,16 +2,31 @@ import { Player } from './player.js';
 import { World } from './world.js';
 import { Finish } from './finish.js';
 
+const canvas = document.getElementById('root');
+const c = canvas.getContext('2d');
+canvas.width = 5000;
+canvas.height = 5000;
+
+const dragon = new Player();
+
 let left, right, up, down = false;
-let mazeSizeY = 11;
-let mazeSizeX = 11;
+let mazeSizeY = 7;
+let mazeSizeX = 7;
+
+let collisionLayer = new World();
+let finish = new Finish();
+
+if(mazeSizeX % 2 == 0)
+    mazeSizeX--;
+if(mazeSizeY % 2 == 0)
+    mazeSizeY--;
 
 function push(event) {
     var keyCode = event.keyCode;
     switch (keyCode) {
         case 37: //d
         left = true;              
-        right = false;              
+        right = false;
         break;
         case 38: //s
         up = true;
@@ -49,86 +64,73 @@ function release(event) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-function generateMaze(rows, cols) {
-    let maze = [];
-    for (let i = 0; i < rows; i++) {
-        maze[i] = [];
-        for (let j = 0; j < cols; j++) {
-            maze[i][j] = 15;
-        }
-    }
-    
-    function isValid(x, y) {
-        return x >= 0 && x < rows && y >= 0 && y < cols;
-    }
-    
-    function getNeighbors(x, y) {
-        const neighbors = [];
-        const dirs = [[0, 2], [0, -2], [2, 0], [-2, 0]];
-        for (let [dx, dy] of dirs) {
-            const nx = x + dx;
-            const ny = y + dy;
-            if (isValid(nx, ny) && maze[nx][ny] === 15) {
-                neighbors.push([nx, ny, x + dx / 2, y + dy / 2]);
+function newGame()
+{
+    function generateMaze(rows, cols) {
+        let maze = [];
+        for (let i = 0; i < rows; i++) {
+            maze[i] = [];
+            for (let j = 0; j < cols; j++) {
+                maze[i][j] = 15;
             }
         }
-        return neighbors;
-    }
-    
-    let walls = [];
-    let startX = 0;
-    let startY = 0;
-    maze[0][startY] = 79;
-    walls.push(...getNeighbors(startX, startY));
-    
-    while (walls.length > 0) {
-        let randomIndex = Math.floor(Math.random() * walls.length);
-        const [x, y, wx, wy] = walls.splice(randomIndex, 1)[0];
         
-        if (maze[x][y] === 15) {
-            maze[x][y] = 79;
-            maze[wx][wy] = 79;
-            walls.push(...getNeighbors(x, y));
+        function isValid(x, y) {
+            return x >= 0 && x < rows && y >= 0 && y < cols;
         }
+        
+        function getNeighbors(x, y) {
+            const neighbors = [];
+            const dirs = [[0, 2], [0, -2], [2, 0], [-2, 0]];
+            for (let [dx, dy] of dirs) {
+                const nx = x + dx;
+                const ny = y + dy;
+                if (isValid(nx, ny) && maze[nx][ny] === 15) {
+                    neighbors.push([nx, ny, x + dx / 2, y + dy / 2]);
+                }
+            }
+            return neighbors;
+        }
+        
+        let walls = [];
+        let startX = 0;
+        let startY = 0;
+        maze[0][startY] = 79;
+        walls.push(...getNeighbors(startX, startY));
+        
+        while (walls.length > 0) {
+            let randomIndex = Math.floor(Math.random() * walls.length);
+            const [x, y, wx, wy] = walls.splice(randomIndex, 1)[0];
+            
+            if (maze[x][y] === 15) {
+                maze[x][y] = 79;
+                maze[wx][wy] = 79;
+                walls.push(...getNeighbors(x, y));
+            }
+        }
+        
+        let endX, endY;
+        do {
+            endX = Math.floor(Math.random() * rows);
+            endY = Math.floor(Math.random() * cols);
+        } while (maze[endX][endY] !== 79);
+        
+        maze.unshift(Array(cols).fill(15));
+        maze.push(Array(cols).fill(15));
+        
+        maze.forEach(element => {
+            element.push(15);
+            element.unshift(15);
+        });
+        
+        return maze;
     }
     
-    let endX, endY;
-    do {
-        endX = Math.floor(Math.random() * rows);
-        endY = Math.floor(Math.random() * cols);
-    } while (maze[endX][endY] !== 79);
-    
-    maze.unshift(Array(cols).fill(15));
-    maze.push(Array(cols).fill(15));
-    
-    maze.forEach(element => {
-        element.push(15);
-        element.unshift(15);
-    });
-    
-    return maze;
+    const maze = generateMaze(mazeSizeX, mazeSizeY);
+    collisionLayer = new World(maze);
+    collisionLayer.drawCollision();
+    finish = new Finish();
 }
-
-const maze = generateMaze(mazeSizeX, mazeSizeY);
-console.log(maze);
-const finish = new Finish();
-
-
-
-
-
-
-
-
 
 
 function checkForWin()
@@ -137,10 +139,6 @@ function checkForWin()
         return true;
     return false;
 }
-
-
-
-
 
 function collision(rect1, rect2) {
     if(rect1.x < rect2.x + rect2.width &&
@@ -155,8 +153,7 @@ function collision(rect1, rect2) {
         let isColliding = false;
         
         const hitLine = player.hitLines.find(element => element.direction == direction);
-        if(hitLine == undefined)
-            {
+        if(hitLine == undefined) {
             console.warn("HitLine not found");
             return null;
         }
@@ -168,33 +165,25 @@ function collision(rect1, rect2) {
             }
         });
         return isColliding;
-        
     }
-    
-    const canvas = document.getElementById('root');
-    canvas.width = 5000;
-    canvas.height = 5000;
-    
-    const c = canvas.getContext('2d');
-    
-    const dragon = new Player();
-    
-    const collisionLayer = new World(maze);
-    
-    collisionLayer.drawCollision();
     
     window.addEventListener('keydown', push, false);
     window.addEventListener('keyup', release, false);
     
     window.addEventListener('load', () => {
         
+        newGame();
         function update() {
             
-            if(checkForWin())
-                {
+            if(checkForWin()) {
                 console.warn("You win");
+                dragon.x = dragon.startX;
+                dragon.y = dragon.startY;
+                mazeSizeX += 2;
+                mazeSizeY += 2;
+                newGame();
             }
-
+            
             let collisionDown = isCollision(dragon, collisionLayer.collidingObjects, "down");
             let collisionUp = isCollision(dragon, collisionLayer.collidingObjects, "up");
             let collisionLeft = isCollision(dragon, collisionLayer.collidingObjects, "left");
@@ -209,7 +198,7 @@ function collision(rect1, rect2) {
             if (up && (!collisionUp)) {
                 dragon.up();
             } else {
-                dragon.collidingUp = collisionUp;ś
+                dragon.collidingUp = collisionUp;
             }
             
             if (left && (!collisionLeft)) {
