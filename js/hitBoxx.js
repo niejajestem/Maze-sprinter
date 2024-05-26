@@ -2,8 +2,8 @@ function HitBox()
 {
     this.x = 0;
     this.y = 0;
-    this.width = 20;
-    this.height = 20;
+    this.width = 15;
+    this.height = 15;
     this.color = "purple";
 
     this.draw = function(context) {

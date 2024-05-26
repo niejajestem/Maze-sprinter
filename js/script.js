@@ -1,20 +1,26 @@
 import { Player } from './player.js';
 import { World } from './world.js';
 import { Finish } from './finish.js';
+import { Camera } from './camera.js';
 
 const canvas = document.getElementById('root');
-const c = canvas.getContext('2d');
-canvas.width = 5000;
-canvas.height = 5000;
+const context = canvas.getContext('2d');
+canvas.width = 10000;
+canvas.height = 10000;
 
 const dragon = new Player();
 
 let left, right, up, down = false;
 let mazeSizeY = 7;
 let mazeSizeX = 7;
+let tilesAddedPerWin = 2;
+
+let leftRight = false;
+let isWalking = false;
 
 let collisionLayer = new World();
 let finish = new Finish();
+const camera = new Camera();
 
 if(mazeSizeX % 2 == 0)
     mazeSizeX--;
@@ -24,21 +30,26 @@ if(mazeSizeY % 2 == 0)
 function push(event) {
     var keyCode = event.keyCode;
     switch (keyCode) {
-        case 37: //d
-        left = true;              
+        case 37: //left
+        left = true;
         right = false;
+        leftRight = true;
         break;
-        case 38: //s
+        case 38: //up
         up = true;
-        down = false;              
+        down = false;
         break;
-        case 39: //a
+        case 39: //right
         right = true;
-        left = false;              
+        left = false;
+        leftRight = false;
         break;
-        case 40: //w
+        case 40: //down
         down = true;
-        up = false;              
+        up = false;
+        break;
+        case 16: //l.shift
+        dragon.sprint(true);
         break;
     }
     
@@ -61,11 +72,18 @@ function release(event) {
         case 40:
         down = false;
         break;
+        case 16:
+        dragon.sprint(false);
+        break;
     }
 }
 
 function newGame()
 {
+    dragon.x = dragon.startX;
+    dragon.y = dragon.startY;
+    
+
     function generateMaze(rows, cols) {
         let maze = [];
         for (let i = 0; i < rows; i++) {
@@ -175,12 +193,13 @@ function collision(rect1, rect2) {
         newGame();
         function update() {
             
+            isWalking = up || down || left || right;
+
             if(checkForWin()) {
                 console.warn("You win");
-                dragon.x = dragon.startX;
-                dragon.y = dragon.startY;
-                mazeSizeX += 2;
-                mazeSizeY += 2;
+                mazeSizeX += tilesAddedPerWin;
+                mazeSizeY += tilesAddedPerWin;
+
                 newGame();
             }
             
@@ -213,15 +232,17 @@ function collision(rect1, rect2) {
                 dragon.collidingRight = collisionRight;
             }
             
-            dragon.update();
+            dragon.update(leftRight, isWalking);
+            camera.follow(dragon); // Update camera to follow player
         }
         
         function draw() {
-            c.clearRect(0, 0, canvas.width, canvas.height);
-            
-            collisionLayer.draw(c);
-            dragon.draw(c);
-            finish.draw(c);
+            camera.applyTransform(context); // Apply camera transformation
+            context.clearRect(0, 0, canvas.width, canvas.height);
+    
+            collisionLayer.draw(context);
+            dragon.draw(context);
+            finish.draw(context);
         }
         
         function mainLoop() {
