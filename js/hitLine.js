@@ -5,10 +5,9 @@ function HitLine()
     this.width = 20;
     this.height = 20;
     this.direction = "none";
-    this.color = "red";
 
     this.draw = function(context) {
-        context.fillStyle = this.color;
+        context.fillStyle = 'rgba(0, 0, 0, 0)';
         context.fillRect(this.x, this.y, this.width, this.height);
     }
 }

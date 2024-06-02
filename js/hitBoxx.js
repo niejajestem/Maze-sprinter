@@ -4,7 +4,7 @@ function HitBox()
     this.y = 0;
     this.width = 15;
     this.height = 15;
-    this.color = "purple";
+    this.color = 'rgba(0, 0, 0, 0)';
 
     this.draw = function(context) {
         context.fillStyle = this.color;
