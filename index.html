@@ -1,13 +1,29 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-	<meta charset="UTF-8">
-	<title>Super game</title>
-	<script src="js/script.js" type="module"></script>	
-				
-	
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Sprinter</title>
 </head>
-<body style="margin: 0px; overflow: unset;">
-	<canvas id="root" style="position: absolute; background-color: gray;"></canvas>
+<body>
+    <div id="controls">
+        <form id="settingsForm">
+            <label for="mazeSize">Set Maze Size:</label>
+            <input type="number" id="mazeSize" name="mazeSize" min="5" max="100" value="10">
+            <br><br>
+            <label for="gameMode">Select Game Mode:</label>
+            <select id="gameMode" name="gameMode">
+                <option value="fixed">Fixed Size</option>
+                <option value="increasing">Increasing Size</option>
+            </select>
+            <br><br>
+            <input type="submit">Apply Settings</input>
+        </form>
+    </div>
+
+	<canvas id="root"></canvas>
+
+    <script src="js/script.js" type="module" defer></script>
+    <!-- Include other scripts as needed -->
 </body>
 </html>
