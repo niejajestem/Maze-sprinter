@@ -11,8 +11,9 @@ canvas.height = 10000;
 const dragon = new Player();
 
 let left, right, up, down = false;
-let mazeSizeY = 7;
 let mazeSizeX = 7;
+let mazeSizeY = 7;
+let gameMode = "fixed";
 let tilesAddedPerWin = 2;
 
 let leftRight = false;
@@ -78,11 +79,14 @@ function release(event) {
     }
 }
 
-function newGame()
-{
+function newGame() {
+
     dragon.x = dragon.startX;
     dragon.y = dragon.startY;
     
+    document.addEventListener("DOMContentLoaded", function() {
+        const settingsForm = document.getElementById("settingsForm");
+    });
 
     function generateMaze(rows, cols) {
         let maze = [];
@@ -148,6 +152,9 @@ function newGame()
     collisionLayer = new World(maze);
     collisionLayer.drawCollision();
     finish = new Finish();
+
+    canvas.width = mazeSizeY * 60;
+    canvas.height = mazeSizeX * 60;
 }
 
 
@@ -189,16 +196,26 @@ function collision(rect1, rect2) {
     window.addEventListener('keyup', release, false);
     
     window.addEventListener('load', () => {
-        
         newGame();
+        
+        settingsForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            mazeSizeX = parseInt(document.getElementById("mazeSizeX").value);
+            mazeSizeY = parseInt(document.getElementById("mazeSizeX").value);
+            gameMode = document.getElementById("gameMode").value;
+            newGame();
+        });
+
         function update() {
             
             isWalking = up || down || left || right;
+                
 
             if(checkForWin()) {
-                console.warn("You win");
-                mazeSizeX += tilesAddedPerWin;
-                mazeSizeY += tilesAddedPerWin;
+                if(gameMode == "increasing") {
+                    mazeSizeX += tilesAddedPerWin;
+                    mazeSizeY += tilesAddedPerWin;
+                }
 
                 newGame();
             }
